@@ -61,7 +61,8 @@ export default function ProductsPage() {
       if (searchImage) {
         try {
           const data = await productsApi.getProdocutsByImage(searchImage);
-          setProducts(data);
+          setProducts(data.products);
+          setSelectedCategory(data.category_id);
         } finally {
           setLoading(false);
         }

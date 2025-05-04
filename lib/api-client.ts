@@ -292,3 +292,5 @@ export const uploadApi = {
     return data.data.url;
   },
 };
+
+export { fetchApi };
