@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useCart } from "@/contexts/cart-context";
 import { useAuth } from "@/contexts/auth-context";
-import { ordersApi } from "@/lib/api-client";
+import { fetchApi, ordersApi } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,9 +17,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2, CreditCardIcon, Wallet, Truck, Home, AlertCircle } from "lucide-react";
+import { Loader2, Truck, Home, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
+import Script from "next/script";
 
 const checkoutSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -31,7 +32,7 @@ const checkoutSchema = z.object({
   country: z.string().min(2, "Country is required"),
   phone: z.string().min(10, "Phone number is required"),
   shippingMethod: z.enum(["standard", "express", "overnight"]),
-  paymentMethod: z.enum(["credit_card", "paypal"]),
+  paymentMethod: z.enum(["credit_card", "paypal", "razorpay"]),
   // Credit card fields (only required if payment method is credit_card)
   cardNumber: z.string().optional(),
   cardName: z.string().optional(),
@@ -49,6 +50,7 @@ export default function CheckoutPage() {
   const { cart, clearCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [razorpayLoading, setRazorpayLoading] = useState(false);
 
   // If cart is empty or user is not logged in, redirect
   if (typeof window !== "undefined") {
@@ -77,8 +79,6 @@ export default function CheckoutPage() {
     },
   });
 
-  const watchPaymentMethod = form.watch("paymentMethod");
-
   const subtotal = cart.total;
   const shippingMethod = form.watch("shippingMethod");
 
@@ -97,7 +97,87 @@ export default function CheckoutPage() {
   const tax = subtotal * 0.08; // 8% tax
   const total = subtotal + shippingCost + tax;
 
+  // Razorpay payment handler
+  const handleRazorpayPayment = async (values: CheckoutFormValues) => {
+    setRazorpayLoading(true);
+    setError(null);
+    try {
+      // Create Razorpay order via API
+      const data = await fetchApi("/api/v1/orders/razorpay/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: {
+          amount: Math.round(total * 100), // in paise
+          currency: "INR",
+          receipt: `order_rcptid_${Date.now()}`,
+        },
+      });
+
+      // Open Razorpay checkout
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Set this in your .env.local
+        amount: Math.round(total * 100),
+        currency: "INR",
+        name: "E-Commerce Shop",
+        description: "Order Payment",
+        order_id: data.orderId,
+        handler: async function (response: {
+          razorpay_payment_id: string;
+          razorpay_order_id: string;
+          razorpay_signature: string;
+        }) {
+          // On successful payment, create the order in your DB
+          try {
+            const orderItems = cart.items.map((item) => ({
+              product_id: item.product_id,
+              quantity: item.quantity,
+              price: item.price,
+            }));
+            const shippingAddress = `${values.address}, ${values.city}, ${values.state} ${values.zip}, ${values.country}`;
+            const orderData = {
+              items: orderItems,
+              total_amount: total,
+              shipping_address: shippingAddress,
+              contact_phone: values.phone,
+              payment_id: response.razorpay_payment_id,
+              payment_method: "razorpay",
+            };
+            const newOrder = await ordersApi.createOrder(orderData);
+            clearCart();
+            toast({
+              title: "Order placed successfully!",
+              description: "Your order has been received and is being processed.",
+            });
+            router.push(`/orders/${newOrder._id}`);
+          } catch {
+            setError("Order creation failed after payment. Please contact support.");
+          }
+        },
+        prefill: {
+          name: values.fullName,
+          email: values.email,
+          contact: values.phone,
+        },
+        theme: { color: "#3399cc" },
+      };
+      // @ts-expect-error: Razorpay is not typed on window object
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", function (response: { error: { description?: string } }) {
+        setError(response.error.description || "Payment failed. Please try again.");
+      });
+      rzp.open();
+    } catch (err: unknown) {
+      setError((err as Error).message || "Razorpay payment failed");
+    } finally {
+      setRazorpayLoading(false);
+    }
+  };
+
   const onSubmit = async (values: CheckoutFormValues) => {
+    if (values.paymentMethod === "razorpay") {
+      await handleRazorpayPayment(values);
+      return;
+    }
     setIsSubmitting(true);
     setError(null);
 
@@ -144,6 +224,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="container py-8">
+      <Script id="razorpay-checkout-js" src="https://checkout.razorpay.com/v1/checkout.js" />
       <h1 className="text-3xl font-bold mb-6">Checkout</h1>
 
       {error && (
@@ -281,6 +362,7 @@ export default function CheckoutPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              <SelectItem value="IN">India</SelectItem>
                               <SelectItem value="US">United States</SelectItem>
                               <SelectItem value="CA">Canada</SelectItem>
                               <SelectItem value="UK">United Kingdom</SelectItem>
@@ -318,7 +400,7 @@ export default function CheckoutPage() {
                                     <div className="font-medium">Standard Shipping</div>
                                     <div className="text-sm text-muted-foreground">Delivery in 5-7 business days</div>
                                   </div>
-                                  <div className="font-medium">$8.99</div>
+                                  <div className="font-medium">₹8.99</div>
                                 </div>
                               </Label>
                             </div>
@@ -330,7 +412,7 @@ export default function CheckoutPage() {
                                     <div className="font-medium">Express Shipping</div>
                                     <div className="text-sm text-muted-foreground">Delivery in 2-3 business days</div>
                                   </div>
-                                  <div className="font-medium">$14.99</div>
+                                  <div className="font-medium">₹14.99</div>
                                 </div>
                               </Label>
                             </div>
@@ -342,7 +424,7 @@ export default function CheckoutPage() {
                                     <div className="font-medium">Overnight Shipping</div>
                                     <div className="text-sm text-muted-foreground">Delivery the next business day</div>
                                   </div>
-                                  <div className="font-medium">$24.99</div>
+                                  <div className="font-medium">₹24.99</div>
                                 </div>
                               </Label>
                             </div>
@@ -369,20 +451,11 @@ export default function CheckoutPage() {
                         <FormControl>
                           <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="space-y-2">
                             <div className="flex items-center space-x-2 border p-4 rounded-lg">
-                              <RadioGroupItem value="credit_card" id="credit_card" />
-                              <Label htmlFor="credit_card" className="flex-1">
+                              <RadioGroupItem value="razorpay" id="razorpay" />
+                              <Label htmlFor="razorpay" className="flex-1">
                                 <div className="flex items-center space-x-2">
-                                  <CreditCardIcon className="h-4 w-4" />
-                                  <span>Credit Card</span>
-                                </div>
-                              </Label>
-                            </div>
-                            <div className="flex items-center space-x-2 border p-4 rounded-lg">
-                              <RadioGroupItem value="paypal" id="paypal" />
-                              <Label htmlFor="paypal" className="flex-1">
-                                <div className="flex items-center space-x-2">
-                                  <Wallet className="h-4 w-4" />
-                                  <span>PayPal</span>
+                                  <img src="https://razorpay.com/favicon.ico" alt="Razorpay" className="h-4 w-4" />
+                                  <span>Razorpay</span>
                                 </div>
                               </Label>
                             </div>
@@ -393,66 +466,10 @@ export default function CheckoutPage() {
                     )}
                   />
 
-                  {/* Credit Card Details */}
-                  {watchPaymentMethod === "credit_card" && (
-                    <div className="mt-4 space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="cardNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Card Number</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="1234 5678 9012 3456" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="cardName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Name on Card</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="John Doe" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="cardExpiry"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Expiration Date</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="MM/YY" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="cardCvc"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>CVC</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="123" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+                  {/* Razorpay Loading Spinner */}
+                  {razorpayLoading && (
+                    <div className="flex items-center mt-4 text-blue-600">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Initializing Razorpay...
                     </div>
                   )}
                 </CardContent>
@@ -510,7 +527,7 @@ export default function CheckoutPage() {
                       <span>
                         {item.name} × {item.quantity}
                       </span>
-                      <span>${(item.price * item.quantity).toFixed(2)}</span>
+                      <span>₹{(item.price * item.quantity).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
@@ -521,20 +538,20 @@ export default function CheckoutPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>₹{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span>${shippingCost.toFixed(2)}</span>
+                    <span>₹{shippingCost.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Tax</span>
-                    <span>${tax.toFixed(2)}</span>
+                    <span>₹{tax.toFixed(2)}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>₹{total.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -542,7 +559,7 @@ export default function CheckoutPage() {
             <CardFooter className="flex flex-col space-y-2 items-start">
               <div className="flex items-center text-sm text-muted-foreground">
                 <Truck className="h-4 w-4 mr-2" />
-                <span>Free shipping on orders over $50</span>
+                <span>Free shipping on orders over ₹50</span>
               </div>
               <div className="flex items-center text-sm text-muted-foreground">
                 <Home className="h-4 w-4 mr-2" />

@@ -31,7 +31,7 @@ export default function MerchantOrdersPage() {
       setError(null);
 
       try {
-        const data = await ordersApi.getMerchantOrders();
+        const data = await ordersApi.getOrders();
         setOrders(data);
       } catch (error) {
         console.error("Error fetching orders:", error);
@@ -313,6 +313,7 @@ export default function MerchantOrdersPage() {
               <th className="text-left py-3 px-4 font-medium">Order ID</th>
               <th className="text-left py-3 px-4 font-medium">Date</th>
               <th className="text-left py-3 px-4 font-medium">Customer</th>
+
               <th className="text-left py-3 px-4 font-medium">Total</th>
               <th className="text-left py-3 px-4 font-medium">Status</th>
               <th className="text-right py-3 px-4 font-medium">Actions</th>
@@ -329,10 +330,11 @@ export default function MerchantOrdersPage() {
                   <div className="text-sm text-muted-foreground">{formatTime(order.created_at)}</div>
                 </td>
                 <td className="py-3 px-4">
-                  <div className="font-medium">User #{order.user_id.slice(-8)}</div>
+                  <div className="font-medium">{order.user_name}</div>
+                  <div className="text-sm text-muted-foreground">{order.shipping_address}</div>
                   <div className="text-sm text-muted-foreground">{order.contact_phone}</div>
                 </td>
-                <td className="py-3 px-4">${order.total_amount.toFixed(2)}</td>
+                <td className="py-3 px-4">₹{order.total_amount.toFixed(2)}</td>
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
                     {getStatusIcon(order.status)}
@@ -341,10 +343,6 @@ export default function MerchantOrdersPage() {
                 </td>
                 <td className="py-3 px-4 text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/merchant/orders/${order._id}`}>View</Link>
-                    </Button>
-
                     {order.status.toLowerCase() === "pending" && (
                       <Button size="sm" onClick={() => handleUpdateOrderStatus(order._id, "processing")}>
                         Process

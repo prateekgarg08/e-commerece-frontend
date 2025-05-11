@@ -9,6 +9,9 @@ import { Toaster } from "@/components/ui/toaster";
 // import { ThemeProvider } from "@/components/theme-provider"
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
+import { WishlistProvider } from "@/contexts/wishlist-context";
+import "@livekit/components-styles";
+import VoiceAgent from "@/components/ui/VoiceAgent";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,12 +28,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <MerchantProvider>
             <CartProvider>
-              <div className="flex min-h-screen flex-col">
-                <Navbar />
-                <main className="flex-1 px-10">{children}</main>
-                <Footer />
-              </div>
-              <Toaster />
+              <WishlistProvider>
+                <div className="flex min-h-screen flex-col">
+                  <Navbar />
+                  <main className="flex-1 px-10">{children}</main>
+                  <Footer />
+                  <VoiceAgent />
+                </div>
+                <Toaster />
+              </WishlistProvider>
             </CartProvider>
           </MerchantProvider>
         </AuthProvider>

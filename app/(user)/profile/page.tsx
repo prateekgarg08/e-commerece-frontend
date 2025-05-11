@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, Loader2, User, Package, Heart, CreditCard, Settings } from "lucide-react";
+import { AlertCircle, Loader2, User, Package, Heart, CreditCard } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
 
@@ -133,12 +133,6 @@ export default function ProfilePage() {
                 <a href="/payment-methods" className="flex items-center">
                   <CreditCard className="mr-2 h-4 w-4" />
                   Payment Methods
-                </a>
-              </Button>
-              <Button variant="ghost" className="justify-start" asChild>
-                <a href="/settings" className="flex items-center">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
                 </a>
               </Button>
             </nav>

@@ -278,6 +278,11 @@ export const ordersApi = {
     const query = queryParams.toString() ? `?${queryParams.toString()}` : "";
     return fetchApi(`/api/v1/orders/merchant/orders${query}`);
   },
+
+  cancelOrder: (orderId: string) =>
+    fetchApi(`/api/v1/orders/${orderId}/cancel`, {
+      method: "PATCH",
+    }),
 };
 
 export const uploadApi = {

@@ -153,8 +153,8 @@ export default function ProductsPage() {
                 onValueChange={(value) => setPriceRange([value[0], value[1]])}
               />
               <div className="flex items-center justify-between">
-                <span>${priceRange[0]}</span>
-                <span>${priceRange[1]}</span>
+                <span>₹{priceRange[0]}</span>
+                <span>₹{priceRange[1]}</span>
               </div>
             </div>
           </div>
@@ -286,8 +286,8 @@ export default function ProductsPage() {
                     onValueChange={(value) => setPriceRange([value[0], value[1]])}
                   />
                   <div className="flex items-center justify-between">
-                    <span>${priceRange[0]}</span>
-                    <span>${priceRange[1]}</span>
+                    <span>₹{priceRange[0]}</span>
+                    <span>₹{priceRange[1]}</span>
                   </div>
                 </div>
               </div>

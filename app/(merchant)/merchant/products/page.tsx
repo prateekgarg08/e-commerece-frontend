@@ -277,7 +277,7 @@ export default function MerchantProductsPage() {
                       </div>
                     </td>
                     <td className="py-3 px-4">{categoryName}</td>
-                    <td className="py-3 px-4">${product.price.toFixed(2)}</td>
+                    <td className="py-3 px-4">₹{product.price.toFixed(2)}</td>
                     <td className="py-3 px-4">
                       {product.stock_quantity > 0 ? (
                         product.stock_quantity

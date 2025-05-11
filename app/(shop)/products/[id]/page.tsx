@@ -8,17 +8,20 @@ import { productsApi, merchantsApi } from "@/lib/api-client";
 import type { Product, Merchant } from "@/types";
 import { useCart } from "@/contexts/cart-context";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Heart, ShoppingCart, Minus, Plus, ArrowLeft, Truck, Shield, RefreshCw } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { ShoppingCart, Heart, Plus, Star, Minus, RefreshCw, Shield, Truck, ArrowLeft } from "lucide-react";
 import ProductCard from "@/components/products/product-card";
+import { useWishlist } from "@/contexts/wishlist-context";
+import ReviewList from "./ReviewList";
+import ReviewForm from "./ReviewForm";
+import { toast } from "@/hooks/use-toast";
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isWishlisted } = useWishlist();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [merchant, setMerchant] = useState<Merchant | null>(null);
@@ -26,7 +29,7 @@ export default function ProductDetailPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [reviewRefreshKey, setReviewRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchProductDetails = async () => {
@@ -73,18 +76,33 @@ export default function ProductDetailPage() {
   };
 
   const toggleWishlist = () => {
-    setIsWishlisted(!isWishlisted);
-    toast({
-      title: isWishlisted ? "Removed from wishlist" : "Added to wishlist",
-      description: `${product?.name} has been ${isWishlisted ? "removed from" : "added to"} your wishlist.`,
-    });
+    if (!product) return;
+    if (isWishlisted(product._id)) {
+      removeFromWishlist(product._id);
+      toast({
+        title: "Removed from wishlist",
+        description: `${product.name} has been removed from your wishlist.`,
+      });
+    } else {
+      addToWishlist(product);
+      toast({
+        title: "Added to wishlist",
+        description: `${product.name} has been added to your wishlist.`,
+      });
+    }
   };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "USD",
+      currency: "INR",
     }).format(price);
+  };
+
+  // Add this handler to refresh both reviews and product details
+  const handleReviewSubmitted = () => {
+    setReviewRefreshKey((k) => k + 1);
+    productsApi.getProduct(id).then(setProduct);
   };
 
   if (loading) {
@@ -158,6 +176,20 @@ export default function ProductDetailPage() {
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">{product.name}</h1>
+            {product.review_count && product.review_count > 0 && (
+              <div className="flex items-center gap-1 mt-2 text-yellow-500 text-base">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-5 w-5 ${i < Math.round(product.average_rating || 0) ? "fill-yellow-400" : ""}`}
+                    strokeWidth={1.5}
+                  />
+                ))}
+                <span className="ml-1 text-xs text-muted-foreground">
+                  {product.average_rating?.toFixed(1)} ({product.review_count})
+                </span>
+              </div>
+            )}
             <div className="flex items-center mt-2">
               <p className="text-2xl font-semibold">{formatPrice(product.price)}</p>
               {product.stock_quantity === 0 ? (
@@ -213,9 +245,11 @@ export default function ProductDetailPage() {
                 Add to Cart
               </Button>
               <Button variant="outline" size="lg" onClick={toggleWishlist}>
-                <Heart className={`h-5 w-5 ${isWishlisted ? "fill-current text-red-500" : ""}`} />
+                <Heart
+                  className={`h-5 w-5 ${product && isWishlisted(product._id) ? "fill-current text-red-500" : ""}`}
+                />
                 <span className="sr-only md:not-sr-only md:ml-2">
-                  {isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                  {product && isWishlisted(product._id) ? "Remove from Wishlist" : "Add to Wishlist"}
                 </span>
               </Button>
             </div>
@@ -282,11 +316,9 @@ export default function ProductDetailPage() {
             </div>
           </TabsContent>
           <TabsContent value="reviews" className="p-4 border rounded-lg mt-4">
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No reviews yet for this product.</p>
-              <Button variant="outline" className="mt-4">
-                Write a Review
-              </Button>
+            <ReviewForm productId={id} onReviewSubmitted={handleReviewSubmitted} />
+            <div className="mt-8">
+              <ReviewList key={reviewRefreshKey} productId={id} />
             </div>
           </TabsContent>
         </Tabs>

@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useEffect } from "react"
-import { useRouter, usePathname } from "next/navigation"
-import Link from "next/link"
-import { useAuth } from "@/contexts/auth-context"
-import { useMerchant } from "@/contexts/merchant-context"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/contexts/auth-context";
+import { useMerchant } from "@/contexts/merchant-context";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   SidebarProvider,
   Sidebar,
@@ -20,53 +20,58 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
   SidebarInset,
-} from "@/components/ui/sidebar"
-import {
-  LayoutDashboard,
-  Package,
-  ShoppingBag,
-  Users,
-  Settings,
-  LogOut,
-  Store,
-  BarChart,
-  HelpCircle,
-} from "lucide-react"
+} from "@/components/ui/sidebar";
+import { LayoutDashboard, Package, ShoppingBag, Users, LogOut, Store, BarChart, HelpCircle } from "lucide-react";
+import { fetchApi } from "@/lib/api-client";
+import { UnverifiedWarning } from "./components/UnverifiedWarning";
 
-export default function MerchantLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const { user } = useAuth()
-  const { merchant, isLoading, isMerchant } = useMerchant()
+interface MerchantProfile {
+  is_verified: boolean;
+}
+
+export default function MerchantLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { user } = useAuth();
+  const { merchant: merchantContext, isLoading, isMerchant } = useMerchant();
+  const [merchant, setMerchant] = useState<MerchantProfile | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // Protect merchant routes
   useEffect(() => {
     if (!isLoading && !user) {
-      router.push("/login?redirect=/merchant/dashboard")
+      router.push("/login?redirect=/merchant/dashboard");
     } else if (!isLoading && !isMerchant) {
-      router.push("/become-merchant")
+      router.push("/become-merchant");
     }
-  }, [user, isMerchant, isLoading, router])
+  }, [user, isMerchant, isLoading, router]);
 
-  if (isLoading) {
+  useEffect(() => {
+    fetchApi("/api/v1/merchants/me")
+      .then((data) => {
+        setMerchant(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
-    )
+    );
   }
 
-  if (!user || !merchant) {
-    return null // Will redirect in the useEffect
+  if (!user || !merchantContext) {
+    return null; // Will redirect in the useEffect
   }
 
   const isActive = (path: string) => {
-    return pathname === path || pathname?.startsWith(`${path}/`)
-  }
+    return pathname === path || pathname?.startsWith(`${path}/`);
+  };
 
   return (
     <SidebarProvider>
@@ -74,7 +79,7 @@ export default function MerchantLayout({
         <SidebarHeader className="flex flex-col items-center justify-center p-4">
           <Store className="h-8 w-8 text-primary mb-2" />
           <h1 className="text-lg font-bold">Merchant Portal</h1>
-          <p className="text-sm text-muted-foreground">{merchant.business_name}</p>
+          <p className="text-sm text-muted-foreground">{merchantContext.business_name}</p>
         </SidebarHeader>
 
         <SidebarContent>
@@ -129,15 +134,6 @@ export default function MerchantLayout({
 
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/merchant/settings")}>
-                <Link href="/merchant/settings">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={isActive("/merchant/help")}>
                 <Link href="/merchant/help">
                   <HelpCircle className="h-4 w-4 mr-2" />
@@ -167,15 +163,17 @@ export default function MerchantLayout({
             {pathname === "/merchant/orders" && "Orders"}
             {pathname === "/merchant/analytics" && "Analytics"}
             {pathname === "/merchant/customers" && "Customers"}
-            {pathname === "/merchant/settings" && "Settings"}
+
             {pathname === "/merchant/help" && "Help & Support"}
             {pathname.startsWith("/merchant/products/") && "Product Details"}
             {pathname.startsWith("/merchant/orders/") && "Order Details"}
           </div>
         </div>
-        <div className="flex-1 p-6">{children}</div>
+        <div className="flex-1 p-6">
+          {merchant && !merchant.is_verified && <UnverifiedWarning />}
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }
-

@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import Link from "next/link";
 import {
@@ -13,11 +14,26 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Users, Package, ShoppingBag, LayoutDashboard, List, User } from "lucide-react";
+import { redirect } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   // Helper to determine active link (optional, can be improved)
   // const pathname = usePathname();
   // const isActive = (path: string) => pathname === path || pathname?.startsWith(`${path}/`);
+
+  const { user } = useAuth();
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+  if (user.role === "user") {
+    return redirect("/");
+  }
+
+  if (user.role === "merchant") {
+    return redirect("/merchant");
+  }
 
   return (
     <SidebarProvider>

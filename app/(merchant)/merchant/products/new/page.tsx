@@ -5,6 +5,8 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { ErrorMessage } from "@hookform/error-message";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { productsApi, categoriesApi, uploadApi } from "@/lib/api-client";
@@ -26,7 +28,7 @@ const productSchema = z.object({
   price: z.coerce.number().positive("Price must be positive"),
   category_id: z.string().min(1, "Please select a category"),
   stock_quantity: z.coerce.number().int().nonnegative("Stock quantity must be a non-negative integer"),
-  images: z.array(z.string()).optional(),
+  images: z.array(z.string()).min(1, "Please upload the images of products"),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -112,6 +114,7 @@ export default function NewProductPage() {
       setLoading(false);
     }
   };
+  // console.log(form.formState.errors);
 
   return (
     <div className="space-y-6">
@@ -133,6 +136,18 @@ export default function NewProductPage() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+      {form.formState.errors &&
+        Object.entries(form.formState.errors).length > 0 &&
+        Object.entries(form.formState.errors).map(([key, value]) => (
+          <Alert key={key} variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Form Error</AlertTitle>
+            <AlertDescription>{value.message}</AlertDescription>
+          </Alert>
+        ))}
+      {/* {JSON.stringify(form.formState.errors)} */}
+
+      {/* <ErrorMessage errors={form.formState.errors} name="singleErrorInput" /> */}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">

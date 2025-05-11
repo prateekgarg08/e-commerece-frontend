@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { productsApi, ordersApi } from "@/lib/api-client"
-import { useMerchant } from "@/contexts/merchant-context"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { productsApi, ordersApi } from "@/lib/api-client";
+import { useMerchant } from "@/contexts/merchant-context";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BarChart,
   Bar,
@@ -19,19 +19,19 @@ import {
   Pie,
   Cell,
   Legend,
-} from "recharts"
-import { Package, ShoppingBag, DollarSign, AlertCircle, ArrowUpRight, ArrowDownRight, Clock } from "lucide-react"
+} from "recharts";
+import { Package, ShoppingBag, DollarSign, AlertCircle, ArrowUpRight, ArrowDownRight, Clock } from "lucide-react";
 
 export default function MerchantDashboardPage() {
-  const { merchant } = useMerchant()
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { merchant } = useMerchant();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalOrders: 0,
     totalRevenue: 0,
     pendingOrders: 0,
-  })
+  });
 
   // Sample data for charts
   const salesData = [
@@ -42,72 +42,72 @@ export default function MerchantDashboardPage() {
     { name: "May", sales: 1890 },
     { name: "Jun", sales: 2390 },
     { name: "Jul", sales: 3490 },
-  ]
+  ];
 
   const orderStatusData = [
     { name: "Pending", value: 5 },
     { name: "Processing", value: 10 },
     { name: "Shipped", value: 15 },
     { name: "Delivered", value: 20 },
-  ]
+  ];
 
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
   const recentOrders = [
     { id: "1", customer: "John Doe", date: "2023-05-15", total: 125.99, status: "Pending" },
     { id: "2", customer: "Jane Smith", date: "2023-05-14", total: 89.5, status: "Processing" },
     { id: "3", customer: "Bob Johnson", date: "2023-05-13", total: 210.75, status: "Shipped" },
     { id: "4", customer: "Alice Brown", date: "2023-05-12", total: 45.25, status: "Delivered" },
-  ]
+  ];
 
   const topProducts = [
     { id: "1", name: "Wireless Headphones", sold: 42, revenue: 8399.58 },
     { id: "2", name: "Smart Watch", sold: 38, revenue: 9499.62 },
     { id: "3", name: "Bluetooth Speaker", sold: 35, revenue: 3149.65 },
     { id: "4", name: "Laptop Backpack", sold: 31, revenue: 2479.69 },
-  ]
+  ];
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
       try {
         // Fetch merchant products
-        const products = await productsApi.getMerchantProducts()
+        const products = await productsApi.getMerchantProducts();
 
         // Fetch merchant orders
-        const orders = await ordersApi.getMerchantOrders()
+        const orders = await ordersApi.getOrders();
 
         // Calculate stats
-        const totalRevenue = orders.reduce((sum: number, order: any) => sum + order.total_amount, 0)
+        const totalRevenue = orders.reduce((sum: number, order: any) => sum + order.total_amount, 0);
         const pendingOrders = orders.filter((order: any) =>
-          ["pending", "processing"].includes(order.status.toLowerCase()),
-        ).length
+          ["pending", "processing"].includes(order.status.toLowerCase())
+        ).length;
 
         setStats({
           totalProducts: products.length,
           totalOrders: orders.length,
           totalRevenue,
           pendingOrders,
-        })
+        });
       } catch (error) {
-        console.error("Error fetching dashboard data:", error)
-        setError("Failed to load dashboard data")
+        console.error("Error fetching dashboard data:", error);
+        setError("Failed to load dashboard data");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchDashboardData()
-  }, [])
+    fetchDashboardData();
+  }, []);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -122,7 +122,7 @@ export default function MerchantDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -314,10 +314,10 @@ export default function MerchantDashboardPage() {
                               order.status === "Pending"
                                 ? "bg-yellow-100 text-yellow-800"
                                 : order.status === "Processing"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : order.status === "Shipped"
-                                    ? "bg-purple-100 text-purple-800"
-                                    : "bg-green-100 text-green-800"
+                                ? "bg-blue-100 text-blue-800"
+                                : order.status === "Shipped"
+                                ? "bg-purple-100 text-purple-800"
+                                : "bg-green-100 text-green-800"
                             }`}
                           >
                             {order.status}
@@ -385,6 +385,5 @@ export default function MerchantDashboardPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
-

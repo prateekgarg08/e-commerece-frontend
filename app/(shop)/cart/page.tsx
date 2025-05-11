@@ -1,43 +1,43 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useCart } from "@/contexts/cart-context"
-import { useAuth } from "@/contexts/auth-context"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
-import { Trash2, Minus, Plus, ShoppingBag, ArrowRight, ShoppingCart } from "lucide-react"
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCart } from "@/contexts/cart-context";
+import { useAuth } from "@/contexts/auth-context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Trash2, Minus, Plus, ShoppingBag, ArrowRight, ShoppingCart } from "lucide-react";
 
 export default function CartPage() {
-  const router = useRouter()
-  const { user } = useAuth()
-  const { cart, removeFromCart, updateQuantity, clearCart } = useCart()
-  const [couponCode, setCouponCode] = useState("")
+  const router = useRouter();
+  const { user } = useAuth();
+  const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
+  const [couponCode, setCouponCode] = useState("");
 
-  const subtotal = cart.total
-  const shipping = subtotal > 0 ? 8.99 : 0
-  const tax = subtotal * 0.08 // 8% tax
-  const total = subtotal + shipping + tax
+  const subtotal = cart.total;
+  const shipping = subtotal > 0 ? 8.99 : 0;
+  const tax = subtotal * 0.08; // 8% tax
+  const total = subtotal + shipping + tax;
 
   const handleApplyCoupon = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // In a real app, you would validate the coupon here
-    alert(`Coupon "${couponCode}" applied!`)
-  }
+    alert(`Coupon "${couponCode}" applied!`);
+  };
 
   const handleCheckout = () => {
     if (!user) {
-      router.push("/login?redirect=checkout")
-      return
+      router.push("/login?redirect=checkout");
+      return;
     }
 
-    router.push("/checkout")
-  }
+    router.push("/checkout");
+  };
 
   if (cart.items.length === 0) {
     return (
@@ -47,7 +47,7 @@ export default function CartPage() {
             <ShoppingCart className="h-24 w-24 text-muted-foreground" />
           </div>
           <h1 className="text-3xl font-bold mb-4">Your Cart is Empty</h1>
-          <p className="text-muted-foreground mb-8">Looks like you haven't added any products to your cart yet.</p>
+          <p className="text-muted-foreground mb-8">Looks like you haven&apos;t added any products to your cart yet.</p>
           <Button size="lg" asChild>
             <Link href="/products">
               <ShoppingBag className="h-5 w-5 mr-2" />
@@ -56,7 +56,7 @@ export default function CartPage() {
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -107,7 +107,7 @@ export default function CartPage() {
               {/* Price - mobile & desktop */}
               <div className="md:col-span-2 md:text-center flex justify-between md:block">
                 <span className="text-muted-foreground md:hidden">Price:</span>
-                <span>${item.price.toFixed(2)}</span>
+                <span>₹{item.price.toFixed(2)}</span>
               </div>
 
               {/* Quantity - mobile & desktop */}
@@ -138,7 +138,7 @@ export default function CartPage() {
               {/* Total - mobile & desktop */}
               <div className="md:col-span-2 md:text-right flex justify-between md:block">
                 <span className="text-muted-foreground md:hidden">Total:</span>
-                <span className="font-medium">${(item.price * item.quantity).toFixed(2)}</span>
+                <span className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</span>
               </div>
             </div>
           ))}
@@ -161,20 +161,20 @@ export default function CartPage() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>₹{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>${shipping.toFixed(2)}</span>
+                <span>₹{shipping.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Tax</span>
-                <span>${tax.toFixed(2)}</span>
+                <span>₹{tax.toFixed(2)}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>₹{total.toFixed(2)}</span>
               </div>
             </div>
 
@@ -195,6 +195,5 @@ export default function CartPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

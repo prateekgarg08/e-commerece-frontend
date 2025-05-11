@@ -1,6 +1,7 @@
 export interface User {
   email: string;
   full_name: string;
+  role: "user" | "merchant" | "admin";
 }
 
 export interface UserCreate extends User {
@@ -88,6 +89,8 @@ export interface Product {
   created_at: string;
   updated_at: string;
   related_products?: Product[];
+  average_rating?: number;
+  review_count?: number;
 }
 
 export interface ProductCreate {
@@ -114,6 +117,7 @@ export interface OrderItemBase {
   product_id: string;
   quantity: number;
   price: number;
+  name: string;
 }
 
 export interface OrderCreate {
@@ -133,6 +137,8 @@ export interface Order {
   status: string;
   created_at: string;
   updated_at: string;
+  user_name: string;
+  merchant_name: string;
 }
 
 export interface OrderUpdate {

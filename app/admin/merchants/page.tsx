@@ -85,6 +85,17 @@ export default function AdminMerchantsPage() {
     }
   };
 
+  // Verify merchant
+  const handleVerify = async (id: string) => {
+    setError(null);
+    try {
+      await fetchApi(`/api/v1/merchants/${id}/verify`, { method: "PUT" });
+      setMerchants((merchants) => merchants.map((m) => (m._id === id ? { ...m, is_verified: true } : m)));
+    } catch {
+      setError("Failed to verify merchant");
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -102,7 +113,7 @@ export default function AdminMerchantsPage() {
                 <th className="p-2 border">Business Name</th>
                 <th className="p-2 border">Email</th>
                 <th className="p-2 border">Phone</th>
-                <th className="p-2 border">Verified</th>
+                <th className="p-2 border">Status</th>
                 <th className="p-2 border">Actions</th>
               </tr>
             </thead>
@@ -112,8 +123,26 @@ export default function AdminMerchantsPage() {
                   <td className="p-2 border">{merchant.business_name}</td>
                   <td className="p-2 border">{merchant.contact_email}</td>
                   <td className="p-2 border">{merchant.contact_phone || "-"}</td>
-                  <td className="p-2 border">{merchant.is_verified ? "Yes" : "No"}</td>
+                  <td className="p-2 border">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        merchant.is_verified ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {merchant.is_verified ? "Verified" : "Pending Verification"}
+                    </span>
+                  </td>
                   <td className="p-2 border flex gap-2">
+                    {!merchant.is_verified && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="bg-green-50 text-green-700 hover:bg-green-100"
+                        onClick={() => handleVerify(merchant._id)}
+                      >
+                        Verify
+                      </Button>
+                    )}
                     <Button size="sm" variant="outline" onClick={() => openDialog(merchant)}>
                       Edit
                     </Button>

@@ -11,6 +11,7 @@ interface Category {
   description?: string;
   parent_id?: string;
   is_active?: boolean;
+  subcategories?: Category[];
 }
 
 export default function AdminCategoriesPage() {
@@ -21,21 +22,25 @@ export default function AdminCategoriesPage() {
   const [editing, setEditing] = useState<Category | null>(null);
   const [form, setForm] = useState<Partial<Category>>({});
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(true);
-    fetchApi("/api/v1/categories")
-      .then((data) => {
-        setCategories(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to fetch categories");
-        setLoading(false);
-      });
+    loadCategories();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const loadCategories = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchApi("/api/v1/categories");
+      setCategories(data);
+    } catch (err) {
+      setError("Failed to fetch categories");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -89,6 +94,21 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  const handleToggleStatus = async (id: string) => {
+    setTogglingId(id);
+    setError(null);
+    try {
+      const updated = await fetchApi(`/api/v1/categories/${id}/toggle-status`, {
+        method: "PATCH",
+      });
+      setCategories((cats) => cats.map((c) => (c._id === updated._id ? updated : c)));
+    } catch {
+      setError("Failed to toggle category status");
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -105,7 +125,8 @@ export default function AdminCategoriesPage() {
               <tr className="bg-gray-100">
                 <th className="p-2 border">Name</th>
                 <th className="p-2 border">Description</th>
-                <th className="p-2 border">Active</th>
+                <th className="p-2 border">Parent</th>
+                <th className="p-2 border">Status</th>
                 <th className="p-2 border">Actions</th>
               </tr>
             </thead>
@@ -114,7 +135,17 @@ export default function AdminCategoriesPage() {
                 <tr key={category._id}>
                   <td className="p-2 border">{category.name}</td>
                   <td className="p-2 border">{category.description || "-"}</td>
-                  <td className="p-2 border">{category.is_active ? "Yes" : "No"}</td>
+                  <td className="p-2 border">{categories.find((c) => c._id === category.parent_id)?.name || "-"}</td>
+                  <td className="p-2 border">
+                    <Button
+                      size="sm"
+                      variant={category.is_active ? "default" : "secondary"}
+                      onClick={() => handleToggleStatus(category._id)}
+                      disabled={togglingId === category._id}
+                    >
+                      {togglingId === category._id ? "Updating..." : category.is_active ? "Active" : "Inactive"}
+                    </Button>
+                  </td>
                   <td className="p-2 border flex gap-2">
                     <Button size="sm" variant="outline" onClick={() => openDialog(category)}>
                       Edit
@@ -145,6 +176,21 @@ export default function AdminCategoriesPage() {
               value={form.description || ""}
               onChange={handleChange}
             />
+            <select
+              name="parent_id"
+              value={form.parent_id || ""}
+              onChange={handleChange}
+              className="w-full border rounded-md p-2"
+            >
+              <option value="">No Parent</option>
+              {categories
+                .filter((c) => c._id !== editing?._id) // Prevent selecting self as parent
+                .map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
+            </select>
             <div className="flex gap-2 justify-end">
               <Button type="button" variant="outline" onClick={closeDialog}>
                 Cancel

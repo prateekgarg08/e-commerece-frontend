@@ -7,7 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useCart } from "@/contexts/cart-context";
-import { User, Search, ShoppingCart, Menu, X, Package, LogOut, Heart, Settings, Store } from "lucide-react";
+import { User, Search, ShoppingCart, Menu, X, Package, LogOut, Heart, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -173,12 +173,7 @@ export default function Navbar() {
                     Wishlist
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
+
                 <DropdownMenuItem asChild>
                   <Link href="/merchant/dashboard">
                     <Store className="w-4 h-4 mr-2" />
