@@ -12,7 +12,7 @@ const featuredProducts = [
     _id: "67dc5e66c23a258959031f14",
     name: "Yellow Chair",
     description: "Beautifull Chair",
-    price: 100.01,
+    price: 6000,
     category_id: "93767247-0593-483a-8a86-7bd548a3cc20",
     stock_quantity: 100,
     images: ["https://res.cloudinary.com/deb6ctgzv/image/upload/v1742495267/mdibobutwrpvhxngkvr7.jpg"],
@@ -22,7 +22,7 @@ const featuredProducts = [
     _id: "67dd90ee8a8689b7733368f2",
     name: "Nike Dunk High",
     description: "Comfortable Shoes",
-    price: 100,
+    price: 12000,
     category_id: "d274e67e-9f13-4630-823b-4b4cc4b1b422",
     stock_quantity: 1,
     images: ["https://res.cloudinary.com/deb6ctgzv/image/upload/v1742573771/ymh91f22jtkgutwqw1zb.webp"],
@@ -135,11 +135,6 @@ export default function HomePage() {
                     Shop Now <ShoppingBag className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link href="/categories">
-                    Browse Categories <ChevronRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
               </div>
             </div>
             <div className="flex items-center justify-center">
@@ -150,7 +145,7 @@ export default function HomePage() {
       </section>
 
       {/* Categories section */}
-      <section className="py-12 px-4 md:px-6">
+      {/* <section className="py-12 px-4 md:px-6">
         <div className="container">
           <div className="flex flex-col gap-2 mb-8">
             <h2 className="text-3xl font-bold tracking-tight">Shop by Category</h2>
@@ -176,7 +171,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Product tabs section */}
       <section className="py-12 px-4 md:px-6 bg-muted/50">
