@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { authApi } from "@/lib/api-client";
 import type { User, UserCreate } from "@/types";
 
@@ -24,6 +24,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   // Check for existing session on mount
+
+  const pathname = usePathname();
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -77,6 +79,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     router.push("/");
   };
+
+  useEffect(() => {
+    if (pathname === "/products" && !user) {
+      router.push("/login");
+    }
+    if (pathname === "/cart" && !user) {
+      router.push("/login");
+    }
+    if (pathname === "/orders" && !user) {
+      router.push("/login");
+    }
+  }, [pathname, user]);
 
   const updateProfile = async (userData: Partial<User> | { password: string }) => {
     setIsLoading(true);
