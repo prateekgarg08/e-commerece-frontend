@@ -286,7 +286,7 @@ function OrderCard({ order, onOrderChanged }: OrderCardProps) {
               {order.items.map((item, index) => (
                 <div key={index} className="flex justify-between text-sm">
                   <span>
-                    {item.product_name} × {item.quantity}
+                    {(item as any).product_name} × {item.quantity}
                   </span>
                   <span>₹{(item.price * item.quantity).toFixed(2)}</span>
                 </div>

@@ -192,7 +192,7 @@ export default function HomePage() {
             <TabsContent value="featured" className="mt-0">
               <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {featuredProducts.map((product) => (
-                  <ProductCard key={product._id} product={product} />
+                  <ProductCard key={product._id} product={product as any} />
                 ))}
               </div>
               <div className="mt-8 text-center">
@@ -204,7 +204,7 @@ export default function HomePage() {
             <TabsContent value="new" className="mt-0">
               <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {newArrivals.map((product) => (
-                  <ProductCard key={product._id} product={product} />
+                  <ProductCard key={product._id} product={product as any} />
                 ))}
               </div>
               <div className="mt-8 text-center">

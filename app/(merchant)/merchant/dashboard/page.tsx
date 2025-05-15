@@ -129,7 +129,7 @@ export default function MerchantDashboardPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold">Welcome back, {merchant.business_name}</h1>
+          <h1 className="text-2xl font-bold">Welcome back, {merchant?.business_name || "Merchant"}</h1>
           <p className="text-muted-foreground">Here's what's happening with your store today.</p>
         </div>
         <div className="mt-4 sm:mt-0">
