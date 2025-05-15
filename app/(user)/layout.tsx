@@ -10,7 +10,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   }
 
   if (user.role === "merchant") {
-    return redirect("/merchant");
+    return redirect("/merchant/dashboard");
   }
 
   if (user.role === "admin") {

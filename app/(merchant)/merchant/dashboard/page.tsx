@@ -187,7 +187,7 @@ export default function MerchantDashboardPage() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-                <h3 className="text-2xl font-bold mt-1">${stats.totalRevenue.toFixed(2)}</h3>
+                <h3 className="text-2xl font-bold mt-1">₹{stats.totalRevenue.toFixed(2)}</h3>
               </div>
               <div className="bg-primary/10 p-2 rounded-full">
                 <DollarSign className="h-5 w-5 text-primary" />

@@ -21,7 +21,7 @@ import { Loader2, Truck, Home, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
 import Script from "next/script";
-
+import Image from "next/image";
 const checkoutSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   fullName: z.string().min(2, "Full name is required"),
@@ -74,7 +74,7 @@ export default function CheckoutPage() {
       country: "US",
       phone: "",
       shippingMethod: "standard",
-      paymentMethod: "credit_card",
+      paymentMethod: "razorpay",
       orderNotes: "",
     },
   });
@@ -454,7 +454,7 @@ export default function CheckoutPage() {
                               <RadioGroupItem value="razorpay" id="razorpay" />
                               <Label htmlFor="razorpay" className="flex-1">
                                 <div className="flex items-center space-x-2">
-                                  <img src="https://razorpay.com/favicon.ico" alt="Razorpay" className="h-4 w-4" />
+                                  <Image src="/image.png" alt="Razorpay" width={20} height={20} />
                                   <span>Razorpay</span>
                                 </div>
                               </Label>

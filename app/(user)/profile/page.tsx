@@ -129,12 +129,6 @@ export default function ProfilePage() {
                   Wishlist
                 </a>
               </Button>
-              <Button variant="ghost" className="justify-start" asChild>
-                <a href="/payment-methods" className="flex items-center">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Payment Methods
-                </a>
-              </Button>
             </nav>
           </CardContent>
         </Card>

@@ -19,6 +19,8 @@ import { fetchApi } from "@/lib/api-client";
 import { RpcError, RpcInvocationData } from "livekit-client";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
+import { Mic } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
 
 export default function VoiceAgent() {
   const [room] = useState(new Room());
@@ -28,6 +30,8 @@ export default function VoiceAgent() {
   const { user } = useAuth();
 
   const role = user?.role;
+
+  console.log("role", role);
 
   const onConnectButtonClicked = useCallback(async () => {
     // Generate room connection details, including:
@@ -42,8 +46,8 @@ export default function VoiceAgent() {
     const connectionDetailsData = await fetchApi("/api/v1/livekit/token", {
       method: "POST",
       body: {
-        room: "fajdfhsa",
-        participant: "test",
+        room: uuidv4(),
+        participant: user?.full_name || "user",
       },
     });
     // const connectionDetailsData: ConnectionDetails = await response.json();
@@ -54,17 +58,22 @@ export default function VoiceAgent() {
     room.localParticipant.registerRpcMethod("navigate_to_page", (data: RpcInvocationData) => {
       const payload = JSON.parse(data.payload);
 
+      console.log("payload", payload);
+
       if (payload.page_name === "home") {
         if (role === "merchant") {
-          router.push("/merchant");
+          router.push("/merchant/dashboard");
         } else if (role === "admin") {
           router.push("/admin");
         } else {
           router.push("/");
         }
-      } else if (payload.page_name === "product") {
+      } else if (payload.page_name === "products") {
+        console.log("products", role, role === "admin");
         if (role === "merchant") {
           router.push("/merchant/products");
+        } else if (role === "admin") {
+          router.push("/admin/products");
         } else {
           router.push("/products");
         }
@@ -80,18 +89,29 @@ export default function VoiceAgent() {
         } else {
           throw new RpcError(1, "Only customer can access wishlist");
         }
-      } else if (payload.page_name === "order") {
+      } else if (payload.page_name === "orders") {
         if (role === "merchant") {
           router.push("/merchant/orders");
         } else if (role === "admin") {
           router.push("/admin/orders");
         } else {
+          console.log("orders");
           router.push("/orders");
         }
       }
       return Promise.resolve("successfull navigation");
     });
-  }, [room, router]);
+
+    room.localParticipant.registerRpcMethod("search_product", (data: RpcInvocationData) => {
+      const payload = JSON.parse(data.payload);
+
+      console.log("payload", payload);
+
+      router.replace(`/products?search=${payload.product_name}`);
+
+      return Promise.resolve("successfull search");
+    });
+  }, [room, router, user?.full_name, role]);
 
   useEffect(() => {
     room.on(RoomEvent.MediaDevicesError, onDeviceFailure);
@@ -129,10 +149,10 @@ function SimpleVoiceAssistant(props: { onConnectButtonClicked: () => void }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.1 }}
-              className="uppercase px-4 py-2 bg-white text-black rounded-md"
+              className="uppercase  p-3  bg-black text-white rounded-full"
               onClick={() => props.onConnectButtonClicked()}
             >
-              Start a conversation
+              <Mic size={24} />
             </motion.button>
           </motion.div>
         ) : (

@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { productsApi, categoriesApi } from "@/lib/api-client";
 import type { Product, Category } from "@/types";
 import ProductCard from "@/components/products/product-card";
@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 export default function ProductsPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialSearch = searchParams.get("search") || "";
   const initialCategory = searchParams.get("category_id") || "";
 
@@ -31,7 +32,6 @@ export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [searchImage, setSearchImage] = useState<File>();
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
-  const [selectedMerchant, setSelectedMerchant] = useState<string>("");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [sortBy, setSortBy] = useState<string>("newest");
 
@@ -70,14 +70,13 @@ export default function ProductsPage() {
       }
 
       try {
-        const params: any = {
+        const params: Record<string, string | number> = {
           skip: (currentPage - 1) * itemsPerPage,
           limit: itemsPerPage,
         };
 
         if (searchQuery) params.search = searchQuery;
         if (selectedCategory) params.category_id = selectedCategory;
-        if (selectedMerchant) params.merchant_id = selectedMerchant;
         if (priceRange[0] > 0) params.min_price = priceRange[0];
         if (priceRange[1] < 1000) params.max_price = priceRange[1];
 
@@ -92,12 +91,24 @@ export default function ProductsPage() {
     };
 
     fetchProducts();
-  }, [searchQuery, selectedCategory, selectedMerchant, priceRange, currentPage, searchImage]);
+  }, [searchQuery, selectedCategory, priceRange, currentPage, searchImage]);
+
+  // Keep searchQuery in sync with URL
+  useEffect(() => {
+    setSearchQuery(searchParams.get("search") || "");
+  }, [searchParams]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Reset to first page when searching
     setCurrentPage(1);
+    // Update the URL with the new search query
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    if (searchQuery) {
+      params.set("search", searchQuery);
+    } else {
+      params.delete("search");
+    }
+    router.push(`?${params.toString()}`);
   };
 
   const toggleFilters = () => {
@@ -240,7 +251,7 @@ export default function ProductsPage() {
                 <SlidersHorizontal className="h-4 w-4 mr-2" />
                 Filters
               </Button>
-              <Select value={sortBy} onValueChange={setSortBy} className="w-[180px]">
+              <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger>
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>

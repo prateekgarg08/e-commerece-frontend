@@ -111,28 +111,28 @@ export default function MerchantLayout({ children }: { children: React.ReactNode
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
+            {/* <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={isActive("/merchant/analytics")}>
                 <Link href="/merchant/analytics">
                   <BarChart className="h-4 w-4 mr-2" />
                   Analytics
                 </Link>
               </SidebarMenuButton>
-            </SidebarMenuItem>
+            </SidebarMenuItem> */}
 
-            <SidebarMenuItem>
+            {/* <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={isActive("/merchant/customers")}>
                 <Link href="/merchant/customers">
                   <Users className="h-4 w-4 mr-2" />
                   Customers
                 </Link>
               </SidebarMenuButton>
-            </SidebarMenuItem>
+            </SidebarMenuItem> */}
           </SidebarMenu>
 
           <Separator className="my-4" />
 
-          <SidebarMenu>
+          {/* <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={isActive("/merchant/help")}>
                 <Link href="/merchant/help">
@@ -141,17 +141,17 @@ export default function MerchantLayout({ children }: { children: React.ReactNode
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          </SidebarMenu>
+          </SidebarMenu> */}
         </SidebarContent>
 
-        <SidebarFooter className="p-4">
+        {/* <SidebarFooter className="p-4">
           <Button variant="outline" className="w-full" asChild>
             <Link href="/">
               <LogOut className="h-4 w-4 mr-2" />
               Exit Merchant Portal
             </Link>
           </Button>
-        </SidebarFooter>
+        </SidebarFooter> */}
       </Sidebar>
 
       <SidebarInset>
@@ -161,7 +161,7 @@ export default function MerchantLayout({ children }: { children: React.ReactNode
             {pathname === "/merchant/dashboard" && "Dashboard"}
             {pathname === "/merchant/products" && "Products"}
             {pathname === "/merchant/orders" && "Orders"}
-            {pathname === "/merchant/analytics" && "Analytics"}
+            {/* {pathname === "/merchant/analytics" && "Analytics"} */}
             {pathname === "/merchant/customers" && "Customers"}
 
             {pathname === "/merchant/help" && "Help & Support"}

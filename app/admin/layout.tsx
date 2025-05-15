@@ -32,7 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   if (user.role === "merchant") {
-    return redirect("/merchant");
+    return redirect("/merchant/dashboard");
   }
 
   return (
@@ -86,11 +86,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter className="p-4">
+        {/* <SidebarFooter className="p-4">
           <Link href="/">
             <span className="text-primary">Exit Admin</span>
           </Link>
-        </SidebarFooter>
+        </SidebarFooter> */}
       </Sidebar>
       <SidebarInset>
         <div className="flex h-16 items-center gap-4 border-b bg-background px-6">
